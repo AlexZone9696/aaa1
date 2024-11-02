@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Криптокошелек на Tron</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        input { margin: 5px 0; width: 200px; }
+        button { margin-top: 10px; }
+        h3, h4 { margin: 0; }
+    </style>
+</head>
+<body>
+    <h1>Криптокошелек на Tron</h1>
+    <button onclick="createWallet()">Создать кошелек</button>
+    <div id="wallet-info" style="display: none;">
+        <h3>Адрес: <span id="wallet-address"></span></h3>
+        <h4>Приватный ключ: <span id="private-key"></span></h4>
+        <button onclick="getBalance()">Получить баланс</button>
+        <h4 id="balance-info" style="display: none;">Баланс: <span id="balance"></span> TRX</h4>
+        
+        <input type="text" id="recipient" placeholder="Адрес получателя">
+        <input type="number" id="amount" placeholder="Сумма TRX">
+        <button onclick="sendTRX()">Отправить TRX</button>
+    </div>
+
+    <script>
+        const apiUrl = 'http://localhost:8000';  // Замените на URL вашего API после развертывания
+
+        async function createWallet() {
+            const response = await fetch(`${apiUrl}/create_wallet/`, { method: 'POST' });
+            const data = await response.json();
+            document.getElementById('wallet-address').innerText = data.address;
+            document.getElementById('private-key').innerText = data.private_key;
+            document.getElementById('wallet-info').style.display = 'block';
+        }
+
+        async function getBalance() {
+            const address = document.getElementById('wallet-address').innerText;
+            const response = await fetch(`${apiUrl}/get_balance/${address}`);
+            const data = await response.json();
+            document.getElementById('balance').innerText = data.balance;
+            document.getElementById('balance-info').style.display = 'block';
+        }
+
+        async function sendTRX() {
+            const fromAddress = document.getElementById('wallet-address').innerText;
+            const toAddress = document.getElementById('recipient').value;
+            const amount = document.getElementById('amount').value;
+
+            const response = await fetch(`${apiUrl}/send_trx/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ from_address: fromAddress, to_address: toAddress, amount: parseFloat(amount) })
+            });
+
+            if (response.ok) {
+                alert('TRX успешно отправлен');
+            } else {
+                const errorData = await response.json();
+                alert('Ошибка при отправке TRX: ' + errorData.detail);
+            }
+        }
+    </script>
+</body>
+</html>
